@@ -45,7 +45,9 @@ func NewClient(httpClient *http.Client) *Client {
 	}
 	baseURL, _ := url.Parse(defaultBaseURL)
 
-	c := &Client{httpClient: httpClient, BaseURL, baseURL, UserAgent: defaultUserAgent, AccessCode: ""}
+	c := &Client{httpClient: httpClient, BaseURL: baseURL, UserAgent: defaultUserAgent, AccessCode: ""}
 	c.common.client = c
 	c.Vessels = (*VesselsService)(&c.common)
+
+	return c
 }

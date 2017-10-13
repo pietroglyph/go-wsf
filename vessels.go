@@ -1,7 +1,11 @@
 package wsf
 
 import (
+	"encoding/json"
 	"errors"
+	"fmt"
+	"io/ioutil"
+	"net/http"
 	"strconv"
 	"strings"
 	"time"
@@ -49,8 +53,43 @@ type VesselLocation struct {
 // underlying time.Time type.
 type Time time.Time
 
-func (s *VesselsService) VesselLocations() *VesselLocations {
-	// TODO: GET at endpoint and unmarshall
+// VesselLocations returns an array of every tracked vessel's location data, along
+// with some other related information. This is updated frequently on the endpoint.
+// See http://www.wsdot.wa.gov/ferries/api/vessels/rest/vessellocations
+func (s *VesselsService) VesselLocations() (*VesselLocations, error) {
+	// TODO: Turn this entire request process into a helper function
+	url := s.client.BaseURL
+	url.Path += "vessels/rest/vessellocations/"
+	url.Query().Add("apiaccesscode", s.client.AccessCode)
+	req, err := http.NewRequest("GET", url.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Set("User-Agent", s.client.UserAgent)
+	req.Header.Set("Accept", "application/json")
+
+	resp, err := s.client.httpClient.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != 200 {
+		return nil, fmt.Errorf("Non-OK status code of %b returned by endpoint", resp.StatusCode)
+	}
+
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	locationData := &VesselLocations{}
+	err = json.Unmarshal(body, locationData)
+	if err != nil {
+		return nil, err
+	}
+
+	return locationData, nil
 }
 
 // UnmarshalJSON unmarshalls the time output by the WSF API
@@ -79,6 +118,6 @@ func (t *Time) UnmarshalJSON(b []byte) error {
 
 	parsedTime := time.Unix(0, i*1000000) // i is in milleseconds so we need to convert to nano, hence the multiplication
 
-	*t = Time{parsedTime}
+	*t = (Time)(parsedTime)
 	return nil
 }
