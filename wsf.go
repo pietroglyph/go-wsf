@@ -10,20 +10,20 @@ const (
 
 	defaultUserAgent = "go-wsf/" + libraryVersion
 
-	defaultBaseURL = "http://www.wsdot.wa.gov/ferries/api/"
+	defaultBaseURL = "https://www.wsdot.wa.gov/Ferries/API/"
 )
 
 // A Client manages communication with the WSF API.
 type Client struct {
 	httpClient *http.Client // HTTP client used to communicate with the API.
 
-	// Base URL for API requests. Defaults to http://www.wsdot.wa.gov/ferries/api/.
+	// Base URL for API requests. Defaults to https://www.wsdot.wa.gov/Ferries/API/.
 	// BaseURL should always be specified with a trailing backslash.
 	BaseURL *url.URL
 
 	UserAgent string
 
-	// Access code for the WSF API, provisioned at http://www.wsdot.wa.gov/traffic/api/.
+	// Access code for the WSF API, provisioned at https://www.wsdot.wa.gov/Traffic/API/.
 	// Requests will fail unless this is defined.
 	AccessCode string
 

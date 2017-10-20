@@ -49,18 +49,19 @@ type VesselLocation struct {
 }
 
 // Time implements a custom JSON unmarsaller for the specific format of
-// non-RFC 3339 time output by the WSF API. Use a type assertion to get to the
-// underlying time.Time type.
+// non-RFC 3339 time output by the WSF API. Cast the variable to a time.Time
+// to get to the underlying type.
 type Time time.Time
 
 // VesselLocations returns an array of every tracked vessel's location data, along
 // with some other related information. This is updated frequently on the endpoint.
-// See http://www.wsdot.wa.gov/ferries/api/vessels/rest/vessellocations
+// See http://www.wsdot.wa.gov/Ferries/API/vessels/rest/vessellocations
 func (s *VesselsService) VesselLocations() (*VesselLocations, error) {
 	// TODO: Turn this entire request process into a helper function
-	url := s.client.BaseURL
-	url.Path += "vessels/rest/vessellocations/"
-	url.Query().Add("apiaccesscode", s.client.AccessCode)
+	url := *s.client.BaseURL
+	url.Path += "Vessels/rest/vessellocations"
+	url.RawQuery = "apiaccesscode=" + s.client.AccessCode
+
 	req, err := http.NewRequest("GET", url.String(), nil)
 	if err != nil {
 		return nil, err
@@ -75,7 +76,7 @@ func (s *VesselsService) VesselLocations() (*VesselLocations, error) {
 	defer resp.Body.Close()
 
 	if resp.StatusCode != 200 {
-		return nil, fmt.Errorf("Non-OK status code of %b returned by endpoint", resp.StatusCode)
+		return nil, fmt.Errorf("Non-OK status code of %d returned by endpoint", resp.StatusCode)
 	}
 
 	body, err := ioutil.ReadAll(resp.Body)
